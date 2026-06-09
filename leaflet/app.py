@@ -14,7 +14,7 @@ app.json.ensure_ascii = False # 防止中文變成 unicode 編碼
 '''
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index_cafe.html')
+    return render_template('index.html')
 
 
 '''
