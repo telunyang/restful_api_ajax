@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- https://lonekorean.github.io/highlight-within-textarea/ -->
+    <link href="./css/jquery.highlight-within-textarea.css" rel="stylesheet">
+
+    <style>
+        textarea#txt {
+            width: 500px;
+            height: 500px;
+        }
+
+        audio#text_to_speech{
+            display: none;
+        }
+
+        .yellow {
+            background-color: #ffec99;
+        }
+    </style>
+</head>
+<body>
+    <!-- https://www.w3schools.com/tags/ref_av_dom.asp -->
+    <audio id="text_to_speech">
+        <source src="" type="audio/mpeg">
+        您的瀏覽器不支援 audio 元素
+    </audio>
+
+    <!-- 席慕蓉: https://kknews.cc/zh-tw/culture/nm6yb2.html -->
+    <textarea id="txt"></textarea>
+
+    <button id="btn_play">播放</button>
+    
+    <!-- CDN: jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- 參考網址: https://lonekorean.github.io/highlight-within-textarea/ -->
+    <script src="./js/jquery.highlight-within-textarea.js"></script>
+
+    <!-- 自訂 JS -->
+    <script>
+        
+    </script>
+
+</body>
+</html>

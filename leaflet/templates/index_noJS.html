@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- leaflet css 設定 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- 自訂 css -->
+    <style>
+        table, thead, th, tbody, tr, td {
+            border: 1px solid;
+        }
+
+        #map { height: 480px; }
+    </style>
+</head>
+<body>
+    <button id="btn_request">取得咖啡廳列表</button>
+
+    <div id="map"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>city</th>
+                <th>name</th>
+                <th>address</th>
+                <th>url</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- leaflet JS cdn -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- 自訂 js -->
+    <script>
+        
+    </script>
+</body>
+</html>
