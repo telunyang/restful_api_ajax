@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>編輯乘客</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input,
+        select {
+            padding: 6px;
+            width: 300px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>編輯乘客</h1>
+
+    <form id="passengerForm">
+        <label>PassengerId</label>
+        <input name="PassengerId" disabled>
+
+        <label>Survived</label>
+        <select name="Survived" required>
+            <option value="0">0：未生還</option>
+            <option value="1">1：生還</option>
+        </select>
+
+        <label>Pclass</label>
+        <select name="Pclass" required>
+            <option value="1">1 等艙</option>
+            <option value="2">2 等艙</option>
+            <option value="3">3 等艙</option>
+        </select>
+
+        <label>Name</label>
+        <input name="Name" required>
+
+        <label>Sex</label>
+        <select name="Sex" required>
+            <option value="male">male</option>
+            <option value="female">female</option>
+        </select>
+
+        <label>Age</label>
+        <input name="Age" type="number" step="0.01">
+
+        <label>SibSp</label>
+        <input name="SibSp" type="number" min="0" required>
+
+        <label>Parch</label>
+        <input name="Parch" type="number" min="0" required>
+
+        <label>Ticket</label>
+        <input name="Ticket" required>
+
+        <label>Fare</label>
+        <input name="Fare" type="number" step="0.0001" min="0" required>
+
+        <label>Cabin</label>
+        <input name="Cabin">
+
+        <label>Embarked</label>
+        <select name="Embarked">
+            <option value="">未知</option>
+            <option value="C">C</option>
+            <option value="Q">Q</option>
+            <option value="S">S</option>
+        </select>
+
+        <button type="submit">更新</button>
+        <a href="/">回首頁</a>
+    </form>
+
+    <script>
+        // 從模板變數中取得 passenger_id，這個變數是在 Flask 的 view function 中傳遞給模板的。
+        const passengerId = {{ passenger_id }};
+
+        // 定義一個名為 loadPassenger 的非同步函式，這個函式會向後端 API 發送 GET 請求，取得指定 passengerId 的乘客資料。
+        async function loadPassenger() {
+            const response = await fetch(`/api/passengers/${passengerId}`);
+
+            if (!response.ok) {
+                alert("找不到指定乘客");
+                window.location.href = "/";
+                return;
+            }
+
+            const item = await response.json();
+            const form = document.getElementById("passengerForm");
+
+            for (const key of Object.keys(item)) {
+                if (form.elements[key]) {
+                    form.elements[key].value = item[key] ?? "";
+                }
+            }
+        }
+
+        // 為 passengerForm 表單綁定 submit 事件的監聽器，當表單被提交時，會觸發這個事件處理函式。
+        document.getElementById("passengerForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const response = await fetch(`/api/passengers/${passengerId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.error + "\n" + (result.details || []).join("\n"));
+                return;
+            }
+
+            alert("更新成功");
+            window.location.href = "/";
+        });
+
+        loadPassenger();
+    </script>
+</body>
+
+</html>

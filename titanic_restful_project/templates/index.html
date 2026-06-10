@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Titanic 乘客資料管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .toolbar {
+            margin-bottom: 20px;
+        }
+
+        .toolbar input,
+        .toolbar button {
+            padding: 6px;
+            margin-right: 6px;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        .pagination {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Titanic 乘客資料管理</h1>
+
+    <div class="toolbar">
+        <a href="/passengers/new">新增乘客</a>
+        <br><br>
+
+        <input type="text" id="searchInput" placeholder="搜尋姓名">
+
+        <button onclick="loadPassengers(1)">查詢</button>
+    </div>
+
+    <div id="summary"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>性別</th>
+                <th>年齡</th>
+                <th>艙等</th>
+                <th>是否生還</th>
+                <th>票價</th>
+                <th>登船港口</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="passengerTableBody"></tbody>
+    </table>
+
+    <div class="pagination">
+        <button onclick="prevPage()">上一頁</button>
+        <span id="pageInfo"></span>
+        <button onclick="nextPage()">下一頁</button>
+    </div>
+
+    <script>
+        // 定義全域變數 currentPage、perPage 和 total，
+        // 分別用來記錄目前的頁碼、每頁顯示的資料筆數，以及資料的總筆數。
+        let currentPage = 1;
+        const perPage = 20;
+        let total = 0;
+
+        // 定義一個名為 loadPassengers 的非同步函式，接受一個 page 參數，預設值為 1。
+        async function loadPassengers(page = 1) {
+            currentPage = page;
+
+            const search = document.getElementById("searchInput").value;
+
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage,
+                search: search
+            });
+
+            const response = await fetch(`/api/passengers?${params.toString()}`);
+
+            if (!response.ok) {
+                alert("讀取資料失敗");
+                return;
+            }
+
+            const data = await response.json();
+            total = data.total;
+
+            renderTable(data.items);
+            renderPagination(data.page, data.per_page, data.total);
+        }
+
+        // 定義一個名為 renderTable 的函式，接受一個 items 參數，這個參數是一個陣列，包含了要顯示在表格中的資料。
+        function renderTable(items) {
+            const tbody = document.getElementById("passengerTableBody");
+            tbody.innerHTML = "";
+
+            for (const item of items) {
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>${item.PassengerId}</td>
+                    <td>${escapeHtml(item.Name)}</td>
+                    <td>${item.Sex}</td>
+                    <td>${item.Age ?? ""}</td>
+                    <td>${item.Pclass}</td>
+                    <td>${item.Survived === 1 ? "生還" : "未生還"}</td>
+                    <td>${item.Fare}</td>
+                    <td>${item.Embarked ?? ""}</td>
+                    <td>
+                        <a href="/passengers/${item.PassengerId}/edit">編輯</a>
+                        |
+                        <button onclick="deletePassenger(${item.PassengerId})">刪除</button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            }
+        }
+
+        // 定義一個名為 renderPagination 的函式，接受 page、perPage 和 total 三個參數，分別代表目前的頁碼、每頁顯示的資料筆數，以及資料的總筆數。
+        function renderPagination(page, perPage, total) {
+            const totalPages = Math.ceil(total / perPage);
+
+            document.getElementById("summary").textContent =
+                `共有 ${total} 筆資料`;
+
+            document.getElementById("pageInfo").textContent =
+                `第 ${page} 頁 / 共 ${totalPages} 頁`;
+        }
+
+        // 定義 prevPage 函式，當使用者點擊「上一頁」按鈕時，會呼叫這個函式。
+        // 這個函式會檢查目前的頁碼是否大於 1，如果是，就呼叫 loadPassengers 函式，載入前一頁的資料。
+        function prevPage() {
+            if (currentPage > 1) {
+                loadPassengers(currentPage - 1);
+            }
+        }
+
+        // 定義 nextPage 函式，當使用者點擊「下一頁」按鈕時，會呼叫這個函式。
+        // 這個函式會先計算總頁數，然後檢查目前的頁碼是否小於總頁數，
+        // 如果是，就呼叫 loadPassengers 函式，載入下一頁的資料。
+        function nextPage() {
+            const totalPages = Math.ceil(total / perPage);
+
+            if (currentPage < totalPages) {
+                loadPassengers(currentPage + 1);
+            }
+        }
+
+        // 定義 deletePassenger 函式，接受一個 passengerId 參數，代表要刪除的乘客 ID。
+        async function deletePassenger(passengerId) {
+            const confirmed = confirm(`確定要刪除 PassengerId=${passengerId} 嗎？`);
+
+            if (!confirmed) {
+                return;
+            }
+
+            const response = await fetch(`/api/passengers/${passengerId}`, {
+                method: "DELETE"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.error || "刪除失敗");
+                return;
+            }
+
+            alert("刪除成功");
+            loadPassengers(currentPage);
+        }
+
+        // 定義 escapeHtml 函式，接受一個 text 參數，這個函式的作用是把一些特殊字元轉換成 HTML 實體，避免 XSS 攻擊。
+        function escapeHtml(text) {
+            if (text === null || text === undefined) {
+                return "";
+            }
+
+            return String(text)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        loadPassengers();
+    </script>
+</body>
+
+</html>
