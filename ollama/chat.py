@@ -35,9 +35,6 @@ async def chat():
     t2 = time.time()
     print(f"Response time: {t2 - t1:.2f} seconds")
 
-if __name__ == '__main__':
-    asyncio.run(chat())
-
 
 
 
@@ -56,12 +53,11 @@ if __name__ == '__main__':
 #         think=False,
 #         stream=True
 #     )
-
 #     async for part in response:
 #         print(part['message']['content'], end='', flush=True)
 
 #     t2 = time.time()
 #     print(f"Response time: {t2 - t1:.2f} seconds")
 
-# if __name__ == '__main__':
-#     asyncio.run(chat())
+if __name__ == '__main__':
+    asyncio.run(chat())
