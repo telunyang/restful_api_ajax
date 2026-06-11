@@ -11,3 +11,4 @@
   curl -X GET "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-TW&q=%E4%BD%A0%E7%9A%84%E8%87%AA%E8%A8%82%E6%96%87%E5%AD%97" -o ./test.mp3
   ```
 - tl=zh-TW 的其它設定：[https://gist.github.com/JT5D/a2fdfefa80124a06f5a9](https://gist.github.com/JT5D/a2fdfefa80124a06f5a9)
+- 可以參考這個範例 [https://github.com/telunyang/python_basics/blob/master/cases/multimedia/google_lady.py](https://github.com/telunyang/python_basics/blob/master/cases/multimedia/google_lady.py)

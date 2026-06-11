@@ -34,14 +34,15 @@ async def compare_texts():
     t1 = time.time()
 
     # 透過 embedding model 取得兩句話的嵌入向量
-    response = await AsyncClient(
+    client = await AsyncClient(
         host='http://localhost:11434',
         timeout=600,
-    ).embed(
+    )
+    response = await client.embed(
         model='bge-m3',
         input=[text1, text2],
         keep_alive='1h',
-    )
+    )   
 
     # 取得第一句和第二句的向量
     embeddings = response.embeddings

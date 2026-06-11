@@ -8,10 +8,11 @@ import time
 async def embed_text():
     t1 = time.time()
 
-    response = await AsyncClient(
+    client = await AsyncClient(
         host='http://localhost:11434',
         timeout=600,
-    ).embed(
+    )
+    response = await client.embed(
         model='bge-m3',
         input='早安', # 你也可以放一句以上，例如 input=['早安', '早上好']，就會得到兩句話的嵌入向量
         keep_alive='1h',
