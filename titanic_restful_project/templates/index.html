@@ -94,31 +94,47 @@
 
         // 定義一個名為 loadPassengers 的非同步函式，接受一個 page 參數，預設值為 1。
         async function loadPassengers(page = 1) {
+            // 取得目前的頁碼，並把它存到 currentPage 變數中。
             currentPage = page;
 
+            // 取得搜尋輸入框的值，存到 search 變數中。
             const search = document.getElementById("searchInput").value;
 
+            // 使用 URLSearchParams 來建立查詢字串，包含 page、per_page 和 search 三個參數。
+            // 這裡的查詢字串就是 Query String，會被附加在 URL 的後面，傳遞給後端 API。
             const params = new URLSearchParams({
                 page: currentPage,
                 per_page: perPage,
                 search: search
             });
 
+            // 使用 fetch API 來向後端 API 發送 GET 請求，URL 包含剛剛建立的查詢字串
             const response = await fetch(`/api/passengers?${params.toString()}`);
 
+            // 當你需要更精確的錯誤訊息時，再加上 response.status 判斷即可，
+            // 目前可以使用 response.ok 來判斷是否成功讀取資料，
+            // 它通常會回傳 true 或 false，根據 HTTP 狀態碼來判斷是否成功，
+            // HTTP status code 200-299 代表成功，其他則代表失敗。
             if (!response.ok) {
                 alert("讀取資料失敗");
                 return;
             }
 
+            // 如果成功讀取資料，我們就把回傳的 JSON 格式資料解析出來，存到 data 變數中
             const data = await response.json();
+
+            // 把 data 中的 total 屬性存到全域變數 total 中，得知資料的總筆數
             total = data.total;
 
+            // 把資料顯示在表格
             renderTable(data.items);
+
+            // 更新分頁資訊
             renderPagination(data.page, data.per_page, data.total);
         }
 
-        // 定義一個名為 renderTable 的函式，接受一個 items 參數，這個參數是一個陣列，包含了要顯示在表格中的資料。
+        // 定義一個名為 renderTable 的函式，接受一個 items 參數，
+        // 這個參數是一個陣列，包含了要顯示在表格中的資料
         function renderTable(items) {
             const tbody = document.getElementById("passengerTableBody");
             tbody.innerHTML = "";
@@ -128,7 +144,7 @@
 
                 tr.innerHTML = `
                     <td>${item.PassengerId}</td>
-                    <td>${escapeHtml(item.Name)}</td>
+                    <td>${item.Name}</td>
                     <td>${item.Sex}</td>
                     <td>${item.Age ?? ""}</td>
                     <td>${item.Pclass}</td>
@@ -146,7 +162,7 @@
             }
         }
 
-        // 定義一個名為 renderPagination 的函式，接受 page、perPage 和 total 三個參數，分別代表目前的頁碼、每頁顯示的資料筆數，以及資料的總筆數。
+        // 顯示分頁資訊
         function renderPagination(page, perPage, total) {
             const totalPages = Math.ceil(total / perPage);
 
@@ -157,15 +173,16 @@
                 `第 ${page} 頁 / 共 ${totalPages} 頁`;
         }
 
-        // 定義 prevPage 函式，當使用者點擊「上一頁」按鈕時，會呼叫這個函式。
-        // 這個函式會檢查目前的頁碼是否大於 1，如果是，就呼叫 loadPassengers 函式，載入前一頁的資料。
+        // 當使用者點擊「上一頁」按鈕時，會呼叫這個函式。
+        // 這個函式會檢查目前的頁碼是否大於 1，
+        // 如果是，就呼叫 loadPassengers 函式，載入前一頁的資料。
         function prevPage() {
             if (currentPage > 1) {
                 loadPassengers(currentPage - 1);
             }
         }
 
-        // 定義 nextPage 函式，當使用者點擊「下一頁」按鈕時，會呼叫這個函式。
+        // 當使用者點擊「下一頁」按鈕時，會呼叫這個函式。
         // 這個函式會先計算總頁數，然後檢查目前的頁碼是否小於總頁數，
         // 如果是，就呼叫 loadPassengers 函式，載入下一頁的資料。
         function nextPage() {
@@ -176,43 +193,37 @@
             }
         }
 
-        // 定義 deletePassenger 函式，接受一個 passengerId 參數，代表要刪除的乘客 ID。
+        // 刪除的乘客 (透過 passengerId)。
         async function deletePassenger(passengerId) {
+            // 在刪除之前，先顯示一個確認對話框，詢問使用者是否確定要刪除這筆資料
             const confirmed = confirm(`確定要刪除 PassengerId=${passengerId} 嗎？`);
 
+            // 如果使用者點擊「取消」，就直接回傳，不執行刪除操作
             if (!confirmed) {
                 return;
             }
-
+        
+            // 請求刪除乘客
             const response = await fetch(`/api/passengers/${passengerId}`, {
                 method: "DELETE"
             });
 
-            const result = await response.json();
+            // 取得回傳的 JSON 格式資料，存到 result 變數中
+            const result = await response.json()
 
+            // 如果刪除失敗，會回傳一個 error 屬性，顯示錯誤訊息給使用者
             if (!response.ok) {
                 alert(result.error || "刪除失敗");
                 return;
             }
 
             alert("刪除成功");
+
+            // 刪除成功後，重新載入目前頁碼的資料，使用者可以看到最新的資料列表
             loadPassengers(currentPage);
         }
 
-        // 定義 escapeHtml 函式，接受一個 text 參數，這個函式的作用是把一些特殊字元轉換成 HTML 實體，避免 XSS 攻擊。
-        function escapeHtml(text) {
-            if (text === null || text === undefined) {
-                return "";
-            }
-
-            return String(text)
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#039;");
-        }
-
+        // 頁面載入完成後，會自動載入第一頁的資料
         loadPassengers();
     </script>
 </body>

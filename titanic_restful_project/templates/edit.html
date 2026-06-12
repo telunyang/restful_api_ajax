@@ -91,34 +91,48 @@
         // 從模板變數中取得 passenger_id，這個變數是在 Flask 的 view function 中傳遞給模板的。
         const passengerId = {{ passenger_id }};
 
-        // 定義一個名為 loadPassenger 的非同步函式，這個函式會向後端 API 發送 GET 請求，取得指定 passengerId 的乘客資料。
+        // 取得指定 passengerId 的乘客資料。
         async function loadPassenger() {
+            // 請求取得乘客資料
             const response = await fetch(`/api/passengers/${passengerId}`);
 
+            // 找不到乘客，就顯示錯誤訊息，然後回到首頁
             if (!response.ok) {
                 alert("找不到指定乘客");
                 window.location.href = "/";
                 return;
             }
 
-            const item = await response.json();
+            // 取得回應的 JSON 格式資料，存到 result 變數中
+            const result = await response.json();
+
+            // 取得 form 元素
             const form = document.getElementById("passengerForm");
 
-            for (const key of Object.keys(item)) {
+            // 把 result.item 中的屬性值填入對應的表單欄位中
+            for (const key of Object.keys(result.item)) {
                 if (form.elements[key]) {
-                    form.elements[key].value = item[key] ?? "";
+                    // 下面的「??」是指如果 result.item[key] 是 null 或 undefined，
+                    // 就使用空字串 ""，這樣表單就不會顯示 null 或 undefined
+                    form.elements[key].value = result.item[key] ?? "";
                 }
             }
         }
 
         // 為 passengerForm 表單綁定 submit 事件的監聽器，當表單被提交時，會觸發這個事件處理函式。
         document.getElementById("passengerForm").addEventListener("submit", async function (event) {
+            // 阻止表單的預設提交行為
             event.preventDefault();
 
+            // 取得表單元素，並使用 FormData 物件來收集表單資料
             const form = event.target;
             const formData = new FormData(form);
+
+            // 將 FormData 物件轉換成一般的 JavaScript 物件，
+            // 這樣我們就可以把它轉成 JSON 格式
             const data = Object.fromEntries(formData.entries());
 
+            // 請求更新乘客資料
             const response = await fetch(`/api/passengers/${passengerId}`, {
                 method: "PUT",
                 headers: {
@@ -127,14 +141,18 @@
                 body: JSON.stringify(data)
             });
 
+            // 取得回應
             const result = await response.json();
 
+            // 如果更新失敗，會取得 error 屬性，顯示錯誤訊息給使用者
             if (!response.ok) {
-                alert(result.error + "\n" + (result.details || []).join("\n"));
+                alert(result.error);
                 return;
             }
 
             alert("更新成功");
+
+            // 更新成功後，回到首頁
             window.location.href = "/";
         });
 

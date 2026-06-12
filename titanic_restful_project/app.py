@@ -95,6 +95,8 @@ def get_passengers():
             """
         ).fetchone()
 
+        # 根據 page 和 per_page 的值，從資料庫查詢對應的資料列，
+        # 並按照 PassengerId 排序。
         rows = db.execute(
             """
             SELECT *
@@ -106,16 +108,17 @@ def get_passengers():
             (per_page, offset)
         ).fetchall()
 
-    # 從 total_row 取出 total 的值，這樣我們就知道總共有多少筆資料了。
+    # 總共有多少筆資料
     total = total_row["total"]
 
     # 最後回傳 JSON 格式的資料，包含 items（資料列表）、page、per_page 和 total。
     return jsonify({
+        "message": "ok",
         "items": [row_to_dict(row) for row in rows],
         "page": page,
         "per_page": per_page,
         "total": total
-    })
+    }), 200
 
 
 # ============================================================
@@ -136,7 +139,10 @@ def get_passenger(passenger_id):
         return jsonify({"error": "找不到資料"}), 404
 
     # 如果有找到資料，我們就把這筆資料轉成 dict，然後回傳 JSON 格式的資料。
-    return jsonify(row_to_dict(row))
+    return jsonify({
+        "message": "ok", 
+        "item": row_to_dict(row)}
+    ), 200
 
 
 # ============================================================
@@ -153,19 +159,15 @@ def create_passenger():
     cursor = db.execute(
         """
         INSERT INTO titanic (
-            Survived,
-            Pclass,
-            Name,
-            Sex,
-            Age,
-            SibSp,
-            Parch,
-            Ticket,
-            Fare,
-            Cabin,
+            Survived, Pclass, Name, Sex, Age,
+            SibSp, Parch, Ticket, Fare, Cabin,
             Embarked
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+            ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, ?, 
+            ?
+        )
         """,
         (
             data["Survived"],
@@ -213,7 +215,7 @@ def update_passenger(passenger_id):
     data = request.get_json()
 
     # 執行 SQL UPDATE 語句，根據 passenger_id 把對應的資料更新成新的值。
-    db.execute(
+    cursor = db.execute(
         """
         UPDATE titanic
         SET
@@ -249,6 +251,10 @@ def update_passenger(passenger_id):
     # 執行 commit()，把剛剛的 UPDATE 操作真正寫入資料庫。
     db.commit()
 
+    # 如果沒有更新任何資料，則回傳 404 Not Found 的錯誤訊息。
+    if cursor.rowcount == 0:
+        return jsonify({"error": "找不到資料"}), 404
+
     # 根據 passenger_id 查詢剛剛更新的那筆資料，這樣我們就可以把完整的資料回傳給前端了。
     row = db.execute(
         "SELECT * FROM titanic WHERE PassengerId = ?",
@@ -263,7 +269,7 @@ def update_passenger(passenger_id):
     return jsonify({
         "message": "updated",
         "item": row_to_dict(row)
-    })
+    }), 200
 
 
 # ============================================================
@@ -274,7 +280,7 @@ def update_passenger(passenger_id):
 @app.route("/api/passengers/<int:passenger_id>", methods=["DELETE"])
 def delete_passenger(passenger_id):
     # 執行 SQL DELETE 語句，根據 passenger_id 把對應的資料從 titanic 資料表中刪除。
-    db.execute(
+    cursor = db.execute(
         "DELETE FROM titanic WHERE PassengerId = ?",
         (passenger_id,)
     )
@@ -282,10 +288,14 @@ def delete_passenger(passenger_id):
     # 執行 commit()，把剛剛的 DELETE 操作真正寫入資料庫。
     db.commit()
 
+    # 如果沒有刪除任何資料，則回傳 404 Not Found 的錯誤訊息。
+    if cursor.rowcount == 0:
+        return jsonify({"error": "找不到資料"}), 404
+
     # 最後回傳 JSON 格式的資料，包含 message，告訴前端這筆資料已經被刪除了。
     return jsonify({
         "message": "deleted"
-    })
+    }), 200 # 你也可以設定 204，但不會有 response body，前端無法判斷成功還是失敗
 
 
 # ============================================================

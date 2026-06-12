@@ -87,12 +87,18 @@
     <script>
         // 監聽 passengerForm 的 submit 事件，當表單被提交時，會觸發這個事件處理器。
         document.getElementById("passengerForm").addEventListener("submit", async function (event) {
+            // 阻止表單的預設提交行為
             event.preventDefault();
 
+            // 取得表單元素，並使用 FormData 物件來收集表單資料
             const form = event.target;
             const formData = new FormData(form);
+
+            // 將 FormData 物件轉換成一般的 JavaScript 物件，
+            // 這樣我們就可以把它轉成 JSON 格式
             const data = Object.fromEntries(formData.entries());
 
+            // 請求新增乘客
             const response = await fetch("/api/passengers", {
                 method: "POST",
                 headers: {
@@ -101,14 +107,18 @@
                 body: JSON.stringify(data)
             });
 
+            // 取得回應
             const result = await response.json();
 
+            // 如果新增失敗，會取得 error 屬性，顯示錯誤訊息給使用者
             if (!response.ok) {
-                alert(result.error + "\n" + (result.details || []).join("\n"));
+                alert(result.error);
                 return;
             }
 
             alert("新增成功");
+
+            // 修改成功後，回到首頁
             window.location.href = "/";
         });
     </script>
